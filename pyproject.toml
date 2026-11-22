@@ -1,0 +1,66 @@
+[project]
+name = "harf"
+version = "0.1.0"
+description = "Urdu Nastaliq OCR from scratch in PyTorch: CNN, BiLSTM and Transformer, with calibration, out-of-distribution and fairness audit."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "CC-BY-NC-SA-4.0" }
+authors = [{ name = "HuMzAHCodes" }]
+dependencies = [
+    "numpy>=2.0",
+    "pillow>=11.0",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "torch>=2.5",
+]
+
+[dependency-groups]
+dev = [
+    "nbstripout>=0.7",
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/harf"]
+
+# On Linux (CI), PyPI's torch wheel bundles CUDA and is several GB.
+# The CPU-only index keeps CI installs small. Windows wheels on PyPI are
+# CPU-only already. Colab ignores this section: `pip install -e .` keeps
+# the GPU build of torch that Colab ships with.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+# E/W: style, F: errors, I: import order, B: likely bugs, UP: modern syntax,
+# N: naming (enforces descriptive snake_case names), D: docstrings.
+select = ["E", "W", "F", "I", "B", "UP", "N", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Test functions are named for what they prove, so per-test docstrings are optional.
+"tests/**" = ["D"]
+# Notebooks are thin runners whose markdown cells do the explaining.
+"notebooks/**" = ["D"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+markers = [
+    "live: needs a GPU, Google Drive or the network; run on Colab only, never in CI",
+]
