@@ -1,0 +1,44 @@
+# Continuous integration: lint and scripted tests on every push and pull request.
+# Requirement NFR-07: CPU only, no network beyond package installs, no GPU,
+# no Google Drive. Live tests (marked `live`) never run here.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Cancel an older run of the same branch when a newer push arrives.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Install uv (with its download cache)
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install Python 3.13 and the locked dependencies
+        # --locked fails the run if uv.lock is out of date with pyproject.toml.
+        # On Linux, torch comes from the CPU-only index (see pyproject.toml).
+        run: uv sync --locked
+
+      - name: Show versions
+        run: uv run python -c "import sys, torch, PIL; print(sys.version.split()[0], torch.__version__, PIL.__version__)"
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Scripted tests
+        run: uv run pytest -m "not live" -v
