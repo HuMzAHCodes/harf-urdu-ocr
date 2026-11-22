@@ -1,2 +1,38 @@
+# The private docs repo lives inside this folder but is never part of this repo.
 docs/
+
+# Secrets: only .env.example (empty values) is tracked.
 .env
+
+# Python environment and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Data, outputs and model weights live on Google Drive, never in git (NFR-08).
+# Small test fixtures in tests/fixtures/ are the only data in this repo.
+/data/
+/outputs/
+/checkpoints/
+/runs/
+wandb/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.zip
+*.tar
+*.tar.gz
+
+# Operating system and editor files
+Thumbs.db
+.DS_Store
+.vscode/
